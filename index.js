@@ -1,110 +1,47 @@
-var $start = document.querySelector('#start')
-var $game = document.querySelector('#game')
-var $time = document.querySelector('#time')
-var $timeHeader = document.querySelector('#time-header')
-var $resultHeader = document.querySelector('#result-header')
-var $result = document.querySelector('#result')
-var $gameTime = document.querySelector('#game-time')
-
-var isGameStarted = false
-var score = 0
-var color = [
-	'red',
-	'blue',
-	'orange',
-	'yellow', 
-	'black'
-]
-
-function startGame() {
-	isGameStarted = true
-	show($timeHeader)
-	hide($resultHeader)
-	$start.classList.add('hide')
-	$game.style.backgroundColor = '#fff'
-	$gameTime.setAttribute('disabled', true)
-	
-	var time = parseFloat($gameTime.value)
-
-	var interval = setInterval(function() {
-		if(time <= 0) {
-			clearInterval(interval)
-			endGame()
-		}else {
-			$time.textContent = time.toFixed(1)
-			time = time - 0.1
-		}
-	}, 100)
-	
-	renderBox()
-}
-
-
-function endGame() {
-	isGameStarted = false
-	hide($timeHeader)
-	show($resultHeader)
-	$result.textContent = score
-	show($start)
-	$game.style.backgroundColor = '#ccc'
-	$game.innerHTML = ''
-	$gameTime.removeAttribute('disabled')
-}
-
-function renderBox(event) {
-	$game.innerHTML = ''
-
-	var box = document.createElement('div')
-	var gameSize = $game.getBoundingClientRect()
-	var boxSize = randomSize(30, 100)
-	var maxHeight = gameSize.height - boxSize
-	var maxWidth = gameSize.width - boxSize
-
-	box.style.position = 'absolute'
-	box.style.top =  randomSize(0, maxHeight) + 'px'
-	box.style.left =  randomSize(0, maxWidth) + 'px'
-	box.style.backgroundColor = color[randomSize(0, color.length)]
-	box.style.height = box.style.width = boxSize + 'px'
-	box.style.cursor = 'pointer'
-	
-	
-	box.setAttribute('data-box', true)
-
-	$game.insertAdjacentElement('afterbegin', box)
-}
-
-
-function randomSize(min, max) {
-	return Math.floor(Math.random() * (max - min) + min)
-}
-
-function handleBoxClick(event) {
-	if(!isGameStarted) {
-		return
+class Dropdown {
+	constructor(selector, options) {
+		this.$el = document.querySelector(selector)
+		this.$dropdownLabel = document.querySelector('.dropdown_label')
+		this.$dropdownMenu = document.querySelector('.dropdown_menu')
+		this.items = options.items
+		this.$dropdownLabel.insertAdjacentHTML('afterbegin', this.items[0].label)
+		this.$el.addEventListener('click', event => {
+			if(event.target.classList.contains('dropdown_label')) {
+				if(this.$el.classList.contains('open')) {
+					this.close()
+				}else {
+					this.open()
+				}
+			}else if (event.target.tagName.toLowerCase() === 'li') {
+				this.$dropdownMenu.addEventListener('click', event => {
+				this.$dropdownLabel.textContent = event.target.textContent
+				this.close()
+			})
+			}
+				
+		})
+		const itemsHTML = this.items.map(i => {
+			return `<li data-id="${i.id}">${i.label}</li>`
+		})
+		this.$dropdownMenu.insertAdjacentHTML('afterbegin', itemsHTML.join(' '))
+		
 	}
-	if(event.target.dataset.box) {
-		score++
-		renderBox()
+
+	open() {
+		this.$el.classList.add('open')
+	}
+	close() {
+		this.$el.classList.remove('open')
 	}
 }
 
-function setGameTime(event) {
-	var time = +$gameTime.value
-	$time.textContent = time.toFixed(1)
-	show($timeHeader)
-	hide($resultHeader)
-
-}
-
-function show($el) {
-	$el.classList.remove('hide')
-}
-function hide($el) {
-	$el.classList.add('hide')
-}
 
 
-
-start.addEventListener('click', startGame)
-$game.addEventListener('click', handleBoxClick)
-$gameTime.addEventListener('input', setGameTime)
+const dropdown = new Dropdown('#dropdown', {
+	items: [
+		{label: 'Москва', id: 'msk'},
+		{label: 'Санкт-Петербург', id: 'spb'},
+		{label: 'Новосибирск', id: 'nsk'},
+		{label: 'Краснодар', id: 'krdr'},
+		]
+})
